@@ -56,6 +56,7 @@ const makeSymbol = function(
     mode: Mode,
     options?: Options,
     classes?: string[],
+    loc?: SourceLocation
 ): SymbolNode {
     const lookup = lookupSymbol(value, fontName, mode);
     const metrics = lookup.metrics;
@@ -87,7 +88,7 @@ const makeSymbol = function(
             symbolNode.style.color = color;
         }
     }
-
+    symbolNode['loc'] = loc
     return symbolNode;
 };
 
@@ -169,7 +170,7 @@ const makeOrd = function<NODETYPE: "spacing" | "mathord" | "textord">(
         // surrogate pairs get special treatment
         const [wideFontName, wideFontClass] = wideCharacterFont(text, mode);
         return makeSymbol(text, wideFontName, mode, options,
-            classes.concat(wideFontClass));
+            classes.concat(wideFontClass), group.loc);
     } else if (fontOrFamily) {
         let fontName;
         let fontClasses;
@@ -188,14 +189,14 @@ const makeOrd = function<NODETYPE: "spacing" | "mathord" | "textord">(
 
         if (lookupSymbol(text, fontName, mode).metrics) {
             return makeSymbol(text, fontName, mode, options,
-                classes.concat(fontClasses));
+                classes.concat(fontClasses), group.loc);
         } else if (ligatures.hasOwnProperty(text) &&
                    fontName.substr(0, 10) === "Typewriter") {
             // Deconstruct ligatures in monospace fonts (\texttt, \tt).
             const parts = [];
             for (let i = 0; i < text.length; i++) {
                 parts.push(makeSymbol(text[i], fontName, mode, options,
-                                      classes.concat(fontClasses)));
+                                      classes.concat(fontClasses), group.loc));
             }
             return makeFragment(parts);
         }
@@ -204,7 +205,7 @@ const makeOrd = function<NODETYPE: "spacing" | "mathord" | "textord">(
     // Makes a symbol in the default font for mathords and textords.
     if (type === "mathord") {
         return makeSymbol(text, "Math-Italic", mode, options,
-            classes.concat(["mathnormal"]));
+            classes.concat(["mathnormal"]), group.loc);
     } else if (type === "textord") {
         const font = symbols[mode][text] && symbols[mode][text].font;
         if (font === "ams") {
@@ -212,20 +213,20 @@ const makeOrd = function<NODETYPE: "spacing" | "mathord" | "textord">(
                   options.fontShape);
             return makeSymbol(
                 text, fontName, mode, options,
-                classes.concat("amsrm", options.fontWeight, options.fontShape));
+                classes.concat("amsrm", options.fontWeight, options.fontShape), group.loc);
         } else if (font === "main" || !font) {
             const fontName = retrieveTextFontName("textrm", options.fontWeight,
                   options.fontShape);
             return makeSymbol(
                 text, fontName, mode, options,
-                classes.concat(options.fontWeight, options.fontShape));
+                classes.concat(options.fontWeight, options.fontShape), group.loc);
         } else { // fonts added by plugins
             const fontName = retrieveTextFontName(font, options.fontWeight,
                   options.fontShape);
             // We add font name as a css class
             return makeSymbol(
                 text, fontName, mode, options,
-                classes.concat(fontName, options.fontWeight, options.fontShape));
+                classes.concat(fontName, options.fontWeight, options.fontShape), group.loc);
         }
     } else {
         throw new Error("unexpected type: " + type + " in makeOrd");

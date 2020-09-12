@@ -203,6 +203,20 @@ export class Span<ChildType: VirtualNode> implements HtmlDomNode {
     ) {
         initNode.call(this, classes, options, style);
         this.children = children || [];
+        let locs = []
+        let getAllLocs = node => {
+          if (node.loc) locs.push(node.loc)
+          if (node.children) {
+            node.children.forEach(getAllLocs)
+          }
+        }
+        getAllLocs(this)
+        if (locs.length) {
+          this.attributes['loc'] = JSON.stringify({ 
+            start: Math.min(...locs.map(x => x.start)),
+            end: Math.max(...locs.map(x => x.end)) 
+          })
+        }
     }
 
     /**
@@ -424,6 +438,7 @@ export class SymbolNode implements HtmlDomNode {
 
         if (span) {
             span.appendChild(node);
+            span.setAttribute('loc', JSON.stringify({ start: this.loc.start, end: this.loc.end }))
             return span;
         } else {
             return node;

@@ -261,6 +261,7 @@ export const buildGroup = function(
         // Call the groupBuilders function
         // $FlowFixMe
         let groupNode: HtmlDomNode = groupBuilders[group.type](group, options);
+        groupNode['loc'] = group['loc']
 
         // If the size changed between the parent and the current group, account
         // for that size difference.
