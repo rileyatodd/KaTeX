@@ -438,7 +438,7 @@ export class SymbolNode implements HtmlDomNode {
 
         if (span) {
             span.appendChild(node);
-            span.setAttribute('loc', JSON.stringify({ start: this.loc.start, end: this.loc.end }))
+            this.loc && span.setAttribute('loc', JSON.stringify({ start: this.loc.start, end: this.loc.end }))
             return span;
         } else {
             return node;
